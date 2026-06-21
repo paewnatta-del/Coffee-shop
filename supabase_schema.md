@@ -31,3 +31,26 @@
 | `789a...` | 2026-06-21 11:00:45 | BB-88432 | ธนาธร ก้าวไกล | 0845556666 | 2026-06-21 | 14:30 - 16:00 น. | 1 | - | Arrived |
 | `012b...` | 2026-06-21 13:40:10 | BB-22941 | มาลี สีสด | 0821112222 | 2026-06-21 | 16:00 - 17:30 น. | 3 | แพ้นมวัว | Cancelled|
 | `345c...` | 2026-06-21 14:05:00 | BB-77390 | วิชาญ สายชิล | 0869998888 | 2026-06-23 | 11:30 - 13:00 น. | 2 | - | Booked |
+
+---
+
+## คำสั่ง SQL สำหรับสร้างตาราง (SQL Create Table)
+
+```sql
+CREATE TABLE reservation (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    booking_ref TEXT UNIQUE NOT NULL,
+    customer_name TEXT NOT NULL,
+    phone_number TEXT NOT NULL,
+    booking_date DATE NOT NULL,
+    time_slot TEXT NOT NULL,
+    guests_count SMALLINT NOT NULL,
+    special_requests TEXT,
+    status TEXT NOT NULL DEFAULT 'Booked'
+);
+
+-- เพิ่ม Comment เพื่ออธิบายตาราง
+COMMENT ON TABLE reservation IS 'ตารางบันทึกการจองโต๊ะร้านกาแฟ';
+COMMENT ON COLUMN reservation.booking_ref IS 'รหัสการจองใช้อ้างอิงกับลูกค้า';
+```

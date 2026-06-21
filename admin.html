@@ -21,23 +21,8 @@
             <button id="btnRefresh" class="btn-submit" style="width: auto; padding: 0.5rem 1.5rem; margin-top: 0;">รีเฟรชข้อมูล</button>
         </div>
 
-        <div style="overflow-x: auto;">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>เวลา</th>
-                        <th>รหัสการจอง</th>
-                        <th>ชื่อลูกค้า</th>
-                        <th>เบอร์โทร</th>
-                        <th>จำนวนคน</th>
-                        <th>หมายเหตุ</th>
-                        <th>สถานะ</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <tr><td colspan="7" style="text-align: center;">กำลังโหลดข้อมูล...</td></tr>
-                </tbody>
-            </table>
+        <div id="cardContainer" class="card-grid">
+            <div class="loading-state">กำลังโหลดข้อมูล... ⏳</div>
         </div>
     </main>
 
@@ -51,14 +36,14 @@
         document.addEventListener('DOMContentLoaded', () => {
             const filterDate = document.getElementById('filterDate');
             const btnRefresh = document.getElementById('btnRefresh');
-            const tableBody = document.getElementById('tableBody');
+            const cardContainer = document.getElementById('cardContainer');
 
             // Set default date to empty to load ALL data by default
             filterDate.value = '';
 
             async function loadReservations() {
                 const date = filterDate.value;
-                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">กำลังโหลดข้อมูล... ⏳</td></tr>';
+                cardContainer.innerHTML = '<div class="loading-state">กำลังโหลดข้อมูล... ⏳</div>';
 
                 let query = supabaseClient.from('reservation').select('*');
                 
@@ -74,18 +59,19 @@
 
                 if (error) {
                     console.error('Error fetching reservations:', error);
-                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--error-color, red); padding: 2rem;">ไม่สามารถดึงข้อมูลได้ในขณะนี้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือรีเฟรชใหม่อีกครั้ง</td></tr>';
+                    cardContainer.innerHTML = '<div class="error-state">ไม่สามารถดึงข้อมูลได้ในขณะนี้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือรีเฟรชใหม่อีกครั้ง</div>';
                     return;
                 }
 
                 if (!data || data.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-light, gray);">ยังไม่มีข้อมูล</td></tr>';
+                    cardContainer.innerHTML = '<div class="empty-state">ยังไม่มีข้อมูล</div>';
                     return;
                 }
 
-                tableBody.innerHTML = '';
+                cardContainer.innerHTML = '';
                 data.forEach(row => {
-                    const tr = document.createElement('tr');
+                    const card = document.createElement('div');
+                    card.className = 'admin-card';
                     
                     // Create status dropdown
                     const statusSelect = `
@@ -100,19 +86,25 @@
                     const dateObj = new Date(row.booking_date);
                     const formattedDate = dateObj.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
 
-                    tr.innerHTML = `
-                        <td style="font-weight: 600;">
-                            <div>${formattedDate}</div>
-                            <div style="font-size: 0.85em; color: var(--text-light);">${row.time_slot}</div>
-                        </td>
-                        <td>${row.booking_ref}</td>
-                        <td>${row.customer_name}</td>
-                        <td>${row.phone_number}</td>
-                        <td>${row.guests_count} ท่าน</td>
-                        <td>${row.special_requests || '-'}</td>
-                        <td>${statusSelect}</td>
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <div class="datetime">
+                                <span class="date">${formattedDate}</span>
+                                <span class="time">${row.time_slot}</span>
+                            </div>
+                            <div class="ref">${row.booking_ref}</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="info-row"><span class="label">ชื่อลูกค้า:</span> <span class="value">${row.customer_name}</span></div>
+                            <div class="info-row"><span class="label">เบอร์โทร:</span> <span class="value">${row.phone_number}</span></div>
+                            <div class="info-row"><span class="label">จำนวนคน:</span> <span class="value">${row.guests_count} ท่าน</span></div>
+                            <div class="info-row"><span class="label">หมายเหตุ:</span> <span class="value">${row.special_requests || '-'}</span></div>
+                        </div>
+                        <div class="card-footer">
+                            ${statusSelect}
+                        </div>
                     `;
-                    tableBody.appendChild(tr);
+                    cardContainer.appendChild(card);
                 });
             }
 

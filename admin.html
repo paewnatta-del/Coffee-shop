@@ -73,18 +73,16 @@
                     const card = document.createElement('div');
                     card.className = 'admin-card';
                     
-                    // Create status dropdown
-                    const statusSelect = `
-                        <select class="status-select status-${row.status}" onchange="updateStatus('${row.id}', this.value)" style="background-color: var(--status-${row.status}-bg, #fff);">
-                            <option value="Booked" ${row.status === 'Booked' ? 'selected' : ''}>Booked (จอง)</option>
-                            <option value="Arrived" ${row.status === 'Arrived' ? 'selected' : ''}>Arrived (มาถึงแล้ว)</option>
-                            <option value="Cancelled" ${row.status === 'Cancelled' ? 'selected' : ''}>Cancelled (ยกเลิก)</option>
-                        </select>
-                    `;
-
                     // Format date to be more readable
                     const dateObj = new Date(row.booking_date);
                     const formattedDate = dateObj.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                    // Formatted Badge Text
+                    let badgeText = row.status;
+                    if(row.status === 'Booked') badgeText = 'Booked';
+                    if(row.status === 'arrived') badgeText = 'Arrived';
+                    if(row.status === 'no_show') badgeText = 'No-show';
+                    if(row.status === 'cancelled') badgeText = 'Cancelled';
 
                     card.innerHTML = `
                         <div class="card-header">
@@ -92,16 +90,20 @@
                                 <span class="date">${formattedDate}</span>
                                 <span class="time">${row.time_slot}</span>
                             </div>
-                            <div class="ref">${row.booking_ref}</div>
+                            <span class="badge badge-${row.status}">${badgeText}</span>
                         </div>
                         <div class="card-body">
+                            <div class="info-row"><span class="label">รหัสการจอง:</span> <span class="value ref" style="margin:0;">${row.booking_ref}</span></div>
                             <div class="info-row"><span class="label">ชื่อลูกค้า:</span> <span class="value">${row.customer_name}</span></div>
                             <div class="info-row"><span class="label">เบอร์โทร:</span> <span class="value">${row.phone_number}</span></div>
                             <div class="info-row"><span class="label">จำนวนคน:</span> <span class="value">${row.guests_count} ท่าน</span></div>
                             <div class="info-row"><span class="label">หมายเหตุ:</span> <span class="value">${row.special_requests || '-'}</span></div>
                         </div>
                         <div class="card-footer">
-                            ${statusSelect}
+                            <button class="btn-action btn-arrived" onclick="updateStatus('${row.id}', 'arrived')">เช็คอิน</button>
+                            <button class="btn-action btn-noshow" onclick="updateStatus('${row.id}', 'no_show')">No-show</button>
+                            <button class="btn-action btn-cancelled" onclick="updateStatus('${row.id}', 'cancelled')">ยกเลิก</button>
+                            <button class="btn-action btn-delete" onclick="deleteReservation('${row.id}')">ลบรายการ</button>
                         </div>
                     `;
                     cardContainer.appendChild(card);
@@ -118,7 +120,25 @@
                 if (error) {
                     alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ: ' + error.message);
                 } else {
+                    alert('อัปเดตสถานะสำเร็จ!');
                     loadReservations(); // Reload to refresh
+                }
+            };
+
+            // Function to delete reservation
+            window.deleteReservation = async (id) => {
+                if (confirm('คุณต้องการลบข้อมูลนี้ใช่หรือไม่? (ลบเฉพาะข้อมูลทดสอบเท่านั้น)')) {
+                    const { error } = await supabaseClient
+                        .from('reservation')
+                        .delete()
+                        .eq('id', id);
+
+                    if (error) {
+                        alert('เกิดข้อผิดพลาดในการลบข้อมูล: ' + error.message);
+                    } else {
+                        alert('ลบข้อมูลสำเร็จ!');
+                        loadReservations(); // Reload to refresh
+                    }
                 }
             };
 

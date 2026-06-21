@@ -13,11 +13,16 @@
     <nav class="navbar">
         <div class="container nav-content">
             <a href="#" class="logo">Brew & Brown</a>
+            <ul class="nav-links">
+                <li><a href="#home">หน้าแรก</a></li>
+                <li><a href="#menu">เมนูแนะนำ</a></li>
+                <li><a href="#booking">จองโต๊ะ</a></li>
+            </ul>
         </div>
     </nav>
 
     <main>
-        <section class="hero-section">
+        <section id="home" class="hero-section">
             <div class="hero-background"></div>
             <div class="container hero-content">
                 <div class="hero-text">
@@ -25,7 +30,7 @@
                     <p>สัมผัสบรรยากาศคาเฟ่พรีเมียม กาแฟรสเลิศ พร้อมที่นั่งที่คุณเลือกได้เอง เพียงแค่จองคิวออนไลน์ง่ายๆ ในไม่กี่ขั้นตอน</p>
                 </div>
 
-                <div class="booking-card">
+                <div id="booking" class="booking-card">
                     <h2>จองโต๊ะ (Book a Table)</h2>
                     <form id="bookingForm" class="booking-form">
                         
@@ -88,6 +93,51 @@
                         <p>รหัสการจองของคุณคือ: <strong>#BB-<span id="refCode"></span></strong></p>
                         <p class="small-text">กรุณาแคปหน้าจอนี้ไว้เป็นหลักฐาน และมาถึงร้านก่อนเวลา 15 นาที</p>
                         <button id="btnReset" class="btn-outline">จองคิวใหม่</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Menu Section -->
+        <section id="menu" class="menu-section">
+            <div class="container">
+                <div class="section-title">
+                    <h2>เมนูซิกเนเจอร์ (Signature Menu)</h2>
+                    <p>คัดสรรเมล็ดกาแฟคุณภาพและเบเกอรี่อบสดใหม่ทุกวัน</p>
+                </div>
+                
+                <div class="menu-grid">
+                    <div class="menu-card">
+                        <div class="card-image-wrapper">
+                            <img src="/Users/paewnatta/.gemini/antigravity/brain/7a52a6ac-34da-4fde-93a6-728a0bdefa34/espresso_shot_1782022425568.png" alt="Espresso Shot">
+                        </div>
+                        <div class="card-content">
+                            <h3>Espresso Shot</h3>
+                            <p>เอสเปรสโซ่ช็อตเข้มข้น หอมกรุ่นด้วยเมล็ดกาแฟอาราบิก้า 100%</p>
+                            <span class="price">฿80</span>
+                        </div>
+                    </div>
+
+                    <div class="menu-card">
+                        <div class="card-image-wrapper">
+                            <img src="/Users/paewnatta/.gemini/antigravity/brain/7a52a6ac-34da-4fde-93a6-728a0bdefa34/latte_art_1782022437097.png" alt="Cafe Latte">
+                        </div>
+                        <div class="card-content">
+                            <h3>Cafe Latte</h3>
+                            <p>ความลงตัวของเอสเปรสโซ่และนมสด พร้อมลาเต้อาร์ตสวยงาม</p>
+                            <span class="price">฿120</span>
+                        </div>
+                    </div>
+
+                    <div class="menu-card">
+                        <div class="card-image-wrapper">
+                            <img src="/Users/paewnatta/.gemini/antigravity/brain/7a52a6ac-34da-4fde-93a6-728a0bdefa34/fresh_croissant_1782022448904.png" alt="Butter Croissant">
+                        </div>
+                        <div class="card-content">
+                            <h3>Butter Croissant</h3>
+                            <p>ครัวซองต์เนยสดฝรั่งเศส อบใหม่ทุกวัน กรอบนอกนุ่มใน</p>
+                            <span class="price">฿95</span>
+                        </div>
                     </div>
                 </div>
             </div>

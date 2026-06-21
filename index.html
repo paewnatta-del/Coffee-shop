@@ -157,7 +157,7 @@
         // Supabase Initialization
         const SUPABASE_URL = 'https://cwdtpdtwklkwxltuhegz.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3ZHRwZHR3a2xrd3hsdHVoZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTI1NzIsImV4cCI6MjA5NzU2ODU3Mn0.Vd7NnpmoXXkD1OYlGAr3_q5ZOFvDHXhSz859H9Wt7q8';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Form Logic
         document.addEventListener('DOMContentLoaded', () => {
@@ -194,7 +194,7 @@
                 btnSubmit.disabled = true;
 
                 // Insert into Supabase table (using 'reservation' as table name)
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('reservation')
                     .insert([
                         { 

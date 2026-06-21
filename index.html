@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brew & Brown - Table Reservation</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a href="#" class="logo">Brew & Brown</a>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero-section">
+            <div class="hero-background"></div>
+            <div class="container hero-content">
+                <div class="hero-text">
+                    <h1>จองโต๊ะล่วงหน้า<br>รับประกันที่นั่งสุดชิล</h1>
+                    <p>สัมผัสบรรยากาศคาเฟ่พรีเมียม กาแฟรสเลิศ พร้อมที่นั่งที่คุณเลือกได้เอง เพียงแค่จองคิวออนไลน์ง่ายๆ ในไม่กี่ขั้นตอน</p>
+                </div>
+
+                <div class="booking-card">
+                    <h2>จองโต๊ะ (Book a Table)</h2>
+                    <form id="bookingForm" class="booking-form">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="date">วันที่ (Date) *</label>
+                                <input type="date" id="date" name="date" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="time">รอบเวลา (Time Slot) *</label>
+                                <select id="time" name="time" required>
+                                    <option value="" disabled selected>เลือกรอบเวลา</option>
+                                    <option value="10:00 - 11:30 น.">10:00 - 11:30 น.</option>
+                                    <option value="11:30 - 13:00 น.">11:30 - 13:00 น.</option>
+                                    <option value="13:00 - 14:30 น.">13:00 - 14:30 น.</option>
+                                    <option value="14:30 - 16:00 น.">14:30 - 16:00 น.</option>
+                                    <option value="16:00 - 17:30 น.">16:00 - 17:30 น.</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="guests">จำนวนแขก (Guests) *</label>
+                            <select id="guests" name="guests" required>
+                                <option value="" disabled selected>เลือกจำนวนคน</option>
+                                <option value="1">1 ท่าน</option>
+                                <option value="2">2 ท่าน</option>
+                                <option value="3">3 ท่าน</option>
+                                <option value="4">4 ท่าน</option>
+                                <option value="5+">5 ท่านขึ้นไป</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="name">ชื่อ-นามสกุล (Name) *</label>
+                                <input type="text" id="name" name="name" placeholder="ชื่อสำหรับจองโต๊ะ" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone">เบอร์โทรศัพท์ (Phone) *</label>
+                                <input type="tel" id="phone" name="phone" placeholder="08X-XXX-XXXX" pattern="[0-9]{10}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="note">หมายเหตุพิเศษ (Special Requests)</label>
+                            <textarea id="note" name="note" rows="3" placeholder="เช่น ขอเก้าอี้เด็ก, ต้องการที่นั่งริมหน้าต่าง"></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-submit">ยืนยันการจองโต๊ะ</button>
+                    </form>
+                    <div id="successMessage" class="success-message hidden">
+                        <div class="success-icon">✓</div>
+                        <h3>การจองสำเร็จ!</h3>
+                        <p>รหัสการจองของคุณคือ: <strong>#BB-<span id="refCode"></span></strong></p>
+                        <p class="small-text">กรุณาแคปหน้าจอนี้ไว้เป็นหลักฐาน และมาถึงร้านก่อนเวลา 15 นาที</p>
+                        <button id="btnReset" class="btn-outline">จองคิวใหม่</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <p>&copy; 2026 Brew & Brown. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Basic Form Validation & Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('bookingForm');
+            const successMsg = document.getElementById('successMessage');
+            const refCodeSpan = document.getElementById('refCode');
+            const btnReset = document.getElementById('btnReset');
+            
+            // Set minimum date to today
+            const dateInput = document.getElementById('date');
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                // Form is valid (native HTML5 validation handled 'required' and 'pattern')
+                // Generate a random reference code
+                const randomCode = Math.floor(10000 + Math.random() * 90000);
+                refCodeSpan.textContent = randomCode;
+                
+                // Show success message, hide form
+                form.classList.add('hidden');
+                successMsg.classList.remove('hidden');
+            });
+
+            btnReset.addEventListener('click', () => {
+                form.reset();
+                successMsg.classList.add('hidden');
+                form.classList.remove('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

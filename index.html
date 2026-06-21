@@ -77,7 +77,10 @@
                             <textarea id="note" name="note" rows="3" placeholder="เช่น ขอเก้าอี้เด็ก, ต้องการที่นั่งริมหน้าต่าง"></textarea>
                         </div>
 
-                        <button type="submit" class="btn-submit">ยืนยันการจองโต๊ะ</button>
+                        <div id="errorMessage" class="error-message hidden" style="color: var(--error-color); text-align: center; margin-top: 1rem; font-weight: 500;">
+                        เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง
+                    </div>
+                    <button type="submit" class="btn-submit">ยืนยันการจองโต๊ะ</button>
                     </form>
                     <div id="successMessage" class="success-message hidden">
                         <div class="success-icon">✓</div>
@@ -97,34 +100,83 @@
         </div>
     </footer>
 
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <script>
-        // Basic Form Validation & Logic
+        // Supabase Initialization
+        const SUPABASE_URL = 'https://cwdtpdtwklkwxltuhegz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3ZHRwZHR3a2xrd3hsdHVoZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTI1NzIsImV4cCI6MjA5NzU2ODU3Mn0.Vd7NnpmoXXkD1OYlGAr3_q5ZOFvDHXhSz859H9Wt7q8';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Form Logic
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('bookingForm');
             const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
             const refCodeSpan = document.getElementById('refCode');
             const btnReset = document.getElementById('btnReset');
+            const btnSubmit = form.querySelector('.btn-submit');
             
             // Set minimum date to today
             const dateInput = document.getElementById('date');
             const today = new Date().toISOString().split('T')[0];
             dateInput.min = today;
 
-            form.addEventListener('submit', (e) => {
+            form.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                errorMsg.classList.add('hidden'); // ซ่อน error ก่อนทุกครั้งที่กดส่ง
                 
-                // Form is valid (native HTML5 validation handled 'required' and 'pattern')
-                // Generate a random reference code
-                const randomCode = Math.floor(10000 + Math.random() * 90000);
-                refCodeSpan.textContent = randomCode;
+                // Get form values
+                const date = document.getElementById('date').value;
+                const time = document.getElementById('time').value;
+                const guests = parseInt(document.getElementById('guests').value);
+                const name = document.getElementById('name').value;
+                const phone = document.getElementById('phone').value;
+                const note = document.getElementById('note').value;
                 
-                // Show success message, hide form
-                form.classList.add('hidden');
-                successMsg.classList.remove('hidden');
+                // Generate a 5-digit reference code
+                const randomCode = 'BB-' + Math.floor(10000 + Math.random() * 90000);
+                
+                // Change button state to loading
+                const originalBtnText = btnSubmit.textContent;
+                btnSubmit.textContent = 'กำลังบันทึกข้อมูล...';
+                btnSubmit.disabled = true;
+
+                // Insert into Supabase table (using 'reservation' as table name)
+                const { data, error } = await supabase
+                    .from('reservation')
+                    .insert([
+                        { 
+                            booking_ref: randomCode,
+                            customer_name: name,
+                            phone_number: phone,
+                            booking_date: date,
+                            time_slot: time,
+                            guests_count: guests,
+                            special_requests: note || null,
+                            status: 'Booked' // Set default status automatically
+                        }
+                    ]);
+
+                // Reset button state
+                btnSubmit.textContent = originalBtnText;
+                btnSubmit.disabled = false;
+
+                if (error) {
+                    console.error('Supabase Error:', error);
+                    errorMsg.classList.remove('hidden'); // แสดงข้อความ Error
+                } else {
+                    // Show success message, hide form
+                    refCodeSpan.textContent = randomCode.replace('BB-', ''); // แสดงเฉพาะเลข หรือจะโชว์ทั้งหมดก็ได้
+                    form.classList.add('hidden');
+                    successMsg.classList.remove('hidden');
+                }
             });
 
             btnReset.addEventListener('click', () => {
                 form.reset();
+                errorMsg.classList.add('hidden');
                 successMsg.classList.add('hidden');
                 form.classList.remove('hidden');
             });

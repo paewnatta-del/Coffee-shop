@@ -167,11 +167,74 @@
             const refCodeSpan = document.getElementById('refCode');
             const btnReset = document.getElementById('btnReset');
             const btnSubmit = form.querySelector('.btn-submit');
+            const timeSelect = document.getElementById('time');
+            
+            // Configuration
+            const CAPACITY_PER_SLOT = 10; // สมมติว่ารับได้ 10 คนต่อรอบ
             
             // Set minimum date to today
             const dateInput = document.getElementById('date');
             const today = new Date().toISOString().split('T')[0];
             dateInput.min = today;
+
+            // Check Availability when date changes
+            dateInput.addEventListener('change', async (e) => {
+                const selectedDate = e.target.value;
+                if(!selectedDate) return;
+
+                // Disable time select while loading
+                timeSelect.disabled = true;
+                const originalOptions = Array.from(timeSelect.options);
+                
+                // Reset texts to default first
+                originalOptions.forEach(opt => {
+                    if(opt.value !== "") opt.text = opt.value;
+                });
+
+                // Fetch bookings for selected date
+                const { data, error } = await supabaseClient
+                    .from('reservation')
+                    .select('time_slot, guests_count')
+                    .eq('booking_date', selectedDate)
+                    .neq('status', 'Cancelled');
+
+                if (error) {
+                    console.error('Error fetching availability:', error);
+                    timeSelect.disabled = false;
+                    return;
+                }
+
+                // Calculate booked guests per slot
+                const bookedCounts = {};
+                data.forEach(booking => {
+                    if (!bookedCounts[booking.time_slot]) {
+                        bookedCounts[booking.time_slot] = 0;
+                    }
+                    // Handle case where guests_count might be string "5+" 
+                    // (though DB is smallint, HTML value is 5 for "5+")
+                    // Wait, HTML value is "1", "2", "3", "4", "5+"
+                    // Let's use parseInt, "5+" becomes 5
+                    bookedCounts[booking.time_slot] += parseInt(booking.guests_count) || 0;
+                });
+
+                // Update options
+                originalOptions.forEach(option => {
+                    if(option.value === "") return; // Skip placeholder
+                    
+                    const booked = bookedCounts[option.value] || 0;
+                    const available = CAPACITY_PER_SLOT - booked;
+                    
+                    if (available <= 0) {
+                        option.disabled = true;
+                        option.text = `${option.value} (คิวเต็ม)`;
+                    } else {
+                        option.disabled = false;
+                        option.text = `${option.value} (ว่าง ${available} ที่)`;
+                    }
+                });
+
+                timeSelect.disabled = false;
+            });
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();

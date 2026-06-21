@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Brew & Brown</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body style="background-color: #f3f4f6;">
+    <header class="admin-header">
+        <h1>Brew & Brown - Admin Dashboard</h1>
+        <a href="index.html" style="color: white; text-decoration: underline;">กลับหน้าแรก</a>
+    </header>
+
+    <main class="container">
+        <div class="admin-controls">
+            <label for="filterDate" style="font-weight: 600;">เลือกวันที่:</label>
+            <input type="date" id="filterDate" class="status-select">
+            <button id="btnRefresh" class="btn-submit" style="width: auto; padding: 0.5rem 1.5rem; margin-top: 0;">รีเฟรชข้อมูล</button>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>เวลา</th>
+                        <th>รหัสการจอง</th>
+                        <th>ชื่อลูกค้า</th>
+                        <th>เบอร์โทร</th>
+                        <th>จำนวนคน</th>
+                        <th>หมายเหตุ</th>
+                        <th>สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr><td colspan="7" style="text-align: center;">กำลังโหลดข้อมูล...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://cwdtpdtwklkwxltuhegz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3ZHRwZHR3a2xrd3hsdHVoZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5OTI1NzIsImV4cCI6MjA5NzU2ODU3Mn0.Vd7NnpmoXXkD1OYlGAr3_q5ZOFvDHXhSz859H9Wt7q8';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const filterDate = document.getElementById('filterDate');
+            const btnRefresh = document.getElementById('btnRefresh');
+            const tableBody = document.getElementById('tableBody');
+
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            filterDate.value = today;
+
+            async function loadReservations() {
+                const date = filterDate.value;
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">กำลังโหลดข้อมูล...</td></tr>';
+
+                const { data, error } = await supabaseClient
+                    .from('reservation')
+                    .select('*')
+                    .eq('booking_date', date)
+                    .order('time_slot', { ascending: true });
+
+                if (error) {
+                    console.error('Error fetching reservations:', error);
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+                    return;
+                }
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">ไม่มีคิวจองในวันนี้</td></tr>';
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    
+                    // Create status dropdown
+                    const statusSelect = `
+                        <select class="status-select status-${row.status}" onchange="updateStatus('${row.id}', this.value)" style="background-color: var(--status-${row.status}-bg, #fff);">
+                            <option value="Booked" ${row.status === 'Booked' ? 'selected' : ''}>Booked (จอง)</option>
+                            <option value="Arrived" ${row.status === 'Arrived' ? 'selected' : ''}>Arrived (มาถึงแล้ว)</option>
+                            <option value="Cancelled" ${row.status === 'Cancelled' ? 'selected' : ''}>Cancelled (ยกเลิก)</option>
+                        </select>
+                    `;
+
+                    tr.innerHTML = `
+                        <td style="font-weight: 600;">${row.time_slot}</td>
+                        <td>${row.booking_ref}</td>
+                        <td>${row.customer_name}</td>
+                        <td>${row.phone_number}</td>
+                        <td>${row.guests_count} ท่าน</td>
+                        <td>${row.special_requests || '-'}</td>
+                        <td>${statusSelect}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            // Function to update status
+            window.updateStatus = async (id, newStatus) => {
+                const { error } = await supabaseClient
+                    .from('reservation')
+                    .update({ status: newStatus })
+                    .eq('id', id);
+
+                if (error) {
+                    alert('เกิดข้อผิดพลาดในการอัปเดตสถานะ: ' + error.message);
+                } else {
+                    loadReservations(); // Reload to refresh
+                }
+            };
+
+            filterDate.addEventListener('change', loadReservations);
+            btnRefresh.addEventListener('click', loadReservations);
+
+            loadReservations();
+        });
+    </script>
+</body>
+</html>
